@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import List from "./List";
 import { uid } from "uid";
+import axios from "axios";
 
 function App() {
   const [contact, setContact] = useState([]);
@@ -14,6 +15,14 @@ function App() {
     name: "",
     telp: "",
   });
+
+  useEffect(() => {
+    axios.get('http://localhost:3000/contacts')
+    .then((response) => {
+      // console.log(response.data);
+      setContact(response?.data ?? [])
+    })
+  },[])
 
   function handleChange(e) {
     let data = { ...formData };
@@ -36,8 +45,20 @@ function App() {
           contact.telp = formData.telp
         }
       })
+      axios.put(`http://localhost:3000/contacts/${isUpdate.id}`,{
+        name: formData.name,
+        telp: formData.telp
+      })
+      .then(() => {
+        alert('Edit success!')
+      })
     }else{
-      data.push({ id: uid(), name: formData.name, telp: formData.telp });
+      let newData = { id: uid(), name: formData.name, telp: formData.telp }
+      data.push(newData);
+      axios.post('http://localhost:3000/contacts', newData)
+      .then((response) => {
+        alert('Berhasil Menyimpan');
+      })
     }
     //Menambahkan contact
 
@@ -50,6 +71,10 @@ function App() {
   function handleDel(id) {
     let data = [...contact]
     let filterData = data.filter(contact => contact.id !== id)
+    axios.delete(`http://localhost:3000/contacts/${id}`)
+    .then(() => {
+      alert('Delete success !')
+    })
     setContact(filterData)
   }
 
